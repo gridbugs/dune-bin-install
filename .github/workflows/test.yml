@@ -3,7 +3,7 @@ on: [push]
 jobs:
 
   test-error-handling:
-    name: "Test install script's error handling":
+    name: "Test install script's error handling"
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -11,7 +11,7 @@ jobs:
       run: diff <(./test_errors.sh ./install.sh) test_errors.expected_output
 
   test-docker:
-    name: "Test installing dune into docker image":
+    name: "Test installing dune into docker image"
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
       run: docker build . -f test.dockerfile
 
   test-interactive:
-    name: "Test install script interactively":
+    name: "Test install script interactively"
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
