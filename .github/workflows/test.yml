@@ -29,3 +29,15 @@ jobs:
         sudo apt-get install -y curl expect
     - name: "Test the script interactively"
       run: ./test_interactive.tcl
+
+  shellcheck:
+    name: "Run shellcheck on all shell scripts"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: "Install shellcheck"
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y shellcheck
+    - name: "Run shellcheck on all shell scripts"
+      run: shellcheck *.sh
