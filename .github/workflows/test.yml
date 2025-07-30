@@ -4,8 +4,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-        sudo apt-get update
-        sudo apt-get install -y curl expect
-      - uses: actions/checkout@v4
-      - run: docker build . -f test.dockerfile
+    - run: |
+      sudo apt-get update
+      sudo apt-get install -y curl expect
+    - uses: actions/checkout@v4
+    - run: docker build . -f test.dockerfile
