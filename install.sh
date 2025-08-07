@@ -257,7 +257,7 @@ main () {
             /*)
                 install_root=$choice
                 ;;
-            "~/"*)
+            '~'/*)
                 install_root=$(echo "$choice" | sed "s#~#$HOME#")
                 echo
                 info "Expanding $choice to $install_root..."
