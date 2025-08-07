@@ -316,7 +316,7 @@ main () {
         fish)
             env_file="$env_dir/env.fish"
             shell_config="${shell_config:-$HOME/.config/fish/config.fish}"
-            remove_opam_precmd_hook=":"
+            remove_opam_precmd_hook="functions --erase __opam_env_export_eval"
             ;;
         *)
             info "The install script does not recognize your shell ($shell_name)."
