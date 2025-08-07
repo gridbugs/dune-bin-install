@@ -260,8 +260,7 @@ main () {
             '~'/*)
                 install_root=$(echo "$choice" | sed "s#~#$HOME#")
                 echo
-                info "Expanding $choice to $install_root..."
-                echo
+                warn "Expanding $choice to $install_root"
                 ;;
             *)
                 echo
@@ -375,25 +374,30 @@ main () {
             info "It's recommended to add Dune's configuration to the same file as the existing opam configuration."
         fi
         echo
-        echo
-        info "Enter the path of your $shell_name config file or leave blank for default:"
-        echo
-        info_bold "[$shell_config_inferred] >"
-        read -r choice < /dev/tty
-        case "$choice" in
-            "")
-                shell_config=$shell_config_inferred
-                ;;
-            '~'/*)
-                shell_config=$(echo "$choice" | sed "s#~#$HOME#")
-                echo
-                info "Expanding $choice to $shell_config..."
-                echo
-                ;;
-            *)
-                shell_config=$choice
-                ;;
-        esac
+        while [ -z "${shell_config+x}" ]; do
+            echo
+            info "Enter the absolute path of your $shell_name config file or leave blank for default:"
+            echo
+            info_bold "[$shell_config_inferred] >"
+            read -r choice < /dev/tty
+            case "$choice" in
+                "")
+                    shell_config=$shell_config_inferred
+                    ;;
+                '~'/*)
+                    shell_config=$(echo "$choice" | sed "s#~#$HOME#")
+                    echo
+                    warn "Expanding $choice to $shell_config"
+                    ;;
+                /*)
+                    shell_config=$choice
+                    ;;
+                *)
+                    echo
+                    warn "Not an absolute path: $choice"
+                    ;;
+            esac
+        done
         echo
     fi
 
