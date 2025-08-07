@@ -306,7 +306,7 @@ main () {
         bash)
             env_file="$env_dir/env.bash"
             shell_config="${shell_config:-$HOME/.bashrc}"
-            remove_opam_precmd_hook="echo $PROMPT_COMMAND | sed 's/\(;\?_opam_env_hook;\?\)/;/'"
+            remove_opam_precmd_hook="PROMPT_COMMAND=\$(echo \$PROMPT_COMMAND | sed 's/\(;\?_opam_env_hook;\?\)/;/')"
             ;;
         zsh)
             env_file="$env_dir/env.zsh"
