@@ -306,7 +306,7 @@ main () {
         bash)
             env_file="$env_dir/env.bash"
             shell_config="${shell_config:-$HOME/.bashrc}"
-            remove_opam_precmd_hook=":"
+            remove_opam_precmd_hook="echo $PROMPT_COMMAND | sed 's/\(;\?_opam_env_hook;\?\)/;/'"
             ;;
         zsh)
             env_file="$env_dir/env.zsh"
@@ -340,7 +340,7 @@ main () {
         echo "#   - removes opam's pre-command hook because it would override Dune's shell configuration"
         echo "source $(unsubst_home "$env_file")"
         echo "$dune_env_call"
-        echo "$remove_opam_precmd_hook"
+        echo "$remove_opam_precmd_hook # remove opam's pre-command hook"
         echo "# END configuration from Dune installer"
     }
 
