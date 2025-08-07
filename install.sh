@@ -235,7 +235,7 @@ main () {
     fi
 
     while [ -z "$install_root" ]; do
-        info "Where would you like to install Dune? (enter index number or custom absolute path)"
+        info "Where would you like to install Dune? (enter index number or custom absolute path or leave blank for default)"
         echo
         info "1) $install_root_local$install_root_local_message"
         echo
@@ -256,6 +256,12 @@ main () {
                 ;;
             /*)
                 install_root=$choice
+                ;;
+            "~/"*)
+                install_root=$(echo "$choice" | sed "s#~#$HOME#")
+                echo
+                info "Expanding $choice to $install_root..."
+                echo
                 ;;
             *)
                 echo
@@ -304,18 +310,43 @@ main () {
     env_dir="$install_root/share/dune/env"
     case "$shell_name" in
         bash)
+            bash_config_candidates="$HOME/.profile $HOME/.bash_profile $HOME/.bashrc"
+            if [ "${XDG_CONFIG_HOME:-}" ]; then
+                bash_config_candidates="$bash_config_candidates $XDG_CONFIG_HOME/profile $XDG_CONFIG_HOME/.profile $XDG_CONFIG_HOME/bash_profile $XDG_CONFIG_HOME/.bash_profile $XDG_CONFIG_HOME/bashrc $XDG_CONFIG_HOME/.bashrc"
+            fi
+            # When opam is initialized for a user using bash as their shell it adds
+            # its configuration to ~/.profile by default. It's possible that users
+            # manually specified a different bash config file such as ~/.bashrc or
+            # ~/.bash_profile. Also some users may have moved the opam
+            # configuration from one bash config file to another. It's necessary
+            # that Dune's configuration be evaluated after opam's configuration. If
+            # users have multiple different bash configurations present (it's quite
+            # common to have both ~/.profile and ~/.bashrc with one sourcing the
+            # other, for example), one way to make sure Dune is initialized after
+            # opam is to append the Dune configuration to the end of which ever
+            # bash config file also contains opam's configuration. This function
+            # chooses the bash config file to add Dune's configuration to by
+            # searching for a file containing Opam's configuration already, and
+            # will select ~/.profile by default to match the behaviour of opam.
+            for config in $bash_config_candidates; do
+                if test -f "$config" && match=$(grep -Hn '\.opam/opam-init/init\.sh' "$config") ; then
+                    shell_config_with_opam_init="$config"
+                    bash_opam_init_match=$match
+                    break
+                fi
+            done
+            shell_config_inferred="${shell_config_with_opam_init:-$HOME/.profile}"
             env_file="$env_dir/env.bash"
-            shell_config="${shell_config:-$HOME/.bashrc}"
             remove_opam_precmd_hook="PROMPT_COMMAND=\"\$(echo \"\$PROMPT_COMMAND\" | tr ';' '\\\\n' | grep -v _opam_env_hook | paste -sd ';' -)\""
             ;;
         zsh)
             env_file="$env_dir/env.zsh"
-            shell_config="${shell_config:-$HOME/.zshrc}"
+            shell_config_inferred="$HOME/.zshrc"
             remove_opam_precmd_hook="add-zsh-hook -d precmd _opam_env_hook"
             ;;
         fish)
             env_file="$env_dir/env.fish"
-            shell_config="${shell_config:-$HOME/.config/fish/config.fish}"
+            shell_config_inferred="$HOME/.config/fish/config.fish"
             remove_opam_precmd_hook="functions --erase __opam_env_export_eval"
             ;;
         *)
@@ -328,6 +359,37 @@ main () {
             exit 0
             ;;
     esac
+
+    if [ -z "${shell_config+x}" ]; then
+        info "The installer can modify your shell config file to set up your environment for runniing dune from your terminal."
+        echo
+        if [ -z "${bash_opam_init_match+x}" ]; then
+            info "Based on your shell ($shell_name) the installer has inferred that your shell config file is: $shell_config_inferred"
+        else
+            info "Your shell is bash and the installer found an existing shell configuration for opam in $shell_config_inferred at:"
+            echo
+            echo
+            info "$bash_opam_init_match"
+            echo
+            echo
+            info "It's recommended to add Dune's configuration to the same file as the existing opam configuration."
+        fi
+        echo
+        echo
+        info "Enter the path of your $shell_name config file or leave blank for default:"
+        echo
+        info_bold "[$shell_config_inferred] >"
+        read -r choice < /dev/tty
+        case "$choice" in
+            "")
+                shell_config=$shell_config_inferred
+                ;;
+            *)
+                shell_config=$choice
+                ;;
+        esac
+        echo
+    fi
 
     dune_env_call="__dune_env $(unsubst_home "$install_root")"
     shell_config_code() {
@@ -344,14 +406,13 @@ main () {
         echo "# END configuration from Dune installer"
     }
 
-    if [ -f "$shell_config" ] && match=$(grep -n "$(echo "$dune_env_call" | sed 's#\$#\\$#')" "$shell_config"); then
+    if [ -f "$shell_config" ] && match=$(grep -Hn "$(echo "$dune_env_call" | sed 's#\$#\\$#')" "$shell_config"); then
         info "It appears your shell config file ($shell_config) is already set up correctly as it contains the line:"
         echo
         info "$match"
         echo
         echo
         info "Just in case it isn't, here are the lines that need run when your shell starts to initialize Dune:"
-        echo
         echo
         shell_config_code
         echo
@@ -361,7 +422,6 @@ main () {
     fi
 
     info "To run dune from your terminal, you'll need to add the following lines to your shell config file ($shell_config):"
-    echo
     echo
     shell_config_code
     echo
