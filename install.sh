@@ -361,7 +361,7 @@ main () {
     esac
 
     if [ -z "${shell_config+x}" ]; then
-        info "The installer can modify your shell config file to set up your environment for runniing dune from your terminal."
+        info "The installer can modify your shell config file to set up your environment for running dune from your terminal."
         echo
         if [ -z "${bash_opam_init_match+x}" ]; then
             info "Based on your shell ($shell_name) the installer has inferred that your shell config file is: $shell_config_inferred"
@@ -383,6 +383,12 @@ main () {
         case "$choice" in
             "")
                 shell_config=$shell_config_inferred
+                ;;
+            '~'/*)
+                shell_config=$(echo "$choice" | sed "s#~#$HOME#")
+                echo
+                info "Expanding $choice to $shell_config..."
+                echo
                 ;;
             *)
                 shell_config=$choice
