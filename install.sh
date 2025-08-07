@@ -306,14 +306,17 @@ main () {
         bash)
             env_file="$env_dir/env.bash"
             shell_config="${shell_config:-$HOME/.bashrc}"
+            remove_opam_precmd_hook=":"
             ;;
         zsh)
             env_file="$env_dir/env.zsh"
             shell_config="${shell_config:-$HOME/.zshrc}"
+            remove_opam_precmd_hook=":"
             ;;
         fish)
             env_file="$env_dir/env.fish"
             shell_config="${shell_config:-$HOME/.config/fish/config.fish}"
+            remove_opam_precmd_hook=":"
             ;;
         *)
             info "The install script does not recognize your shell ($shell_name)."
@@ -328,9 +331,16 @@ main () {
 
     dune_env_call="__dune_env $(unsubst_home "$install_root")"
     shell_config_code() {
-        echo "# From Dune installer:"
+        echo "# BEGIN configuration from Dune installer"
+        echo "# This configuration must be placed after any opam configuration in your shell config file."
+        echo "# This performs several tasks to configure your shell for Dune:"
+        echo "#   - makes sure the dune executable is available in your \$PATH"
+        echo "#   - registers shell completions for dune if completions are available for your shell"
+        echo "#   - removes opam's pre-command hook because it would override Dune's shell configuration"
         echo "source $(unsubst_home "$env_file")"
         echo "$dune_env_call"
+        echo "$remove_opam_precmd_hook"
+        echo "# END configuration from Dune installer"
     }
 
     if [ -f "$shell_config" ] && match=$(grep -n "$(echo "$dune_env_call" | sed 's#\$#\\$#')" "$shell_config"); then
