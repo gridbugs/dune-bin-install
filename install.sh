@@ -311,7 +311,7 @@ main () {
         zsh)
             env_file="$env_dir/env.zsh"
             shell_config="${shell_config:-$HOME/.zshrc}"
-            remove_opam_precmd_hook=":"
+            remove_opam_precmd_hook="add-zsh-hook -d precmd _opam_env_hook"
             ;;
         fish)
             env_file="$env_dir/env.fish"
@@ -331,6 +331,7 @@ main () {
 
     dune_env_call="__dune_env $(unsubst_home "$install_root")"
     shell_config_code() {
+        echo
         echo "# BEGIN configuration from Dune installer"
         echo "# This configuration must be placed after any opam configuration in your shell config file."
         echo "# This performs several tasks to configure your shell for Dune:"
