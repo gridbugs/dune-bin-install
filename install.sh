@@ -336,7 +336,7 @@ main () {
             done
             shell_config_inferred="${shell_config_with_opam_init:-$HOME/.profile}"
             env_file="$env_dir/env.bash"
-            remove_opam_precmd_hook="PROMPT_COMMAND=\"\$(echo \"\$PROMPT_COMMAND\" | tr ';' '\\\\n' | grep -v _opam_env_hook | paste -sd ';' -)\""
+            remove_opam_precmd_hook="PROMPT_COMMAND=\"\$(echo \"\$PROMPT_COMMAND\" | tr ';' '\\n' | grep -v _opam_env_hook | paste -sd ';' -)\""
             ;;
         zsh)
             env_file="$env_dir/env.zsh"
